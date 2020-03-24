@@ -4,15 +4,13 @@ import discord
 from discord.ext import commands
 
 DESCRIPTION = """
-"""
-
-WELCOME_TEXT = """
+A bot for tracking the animal crossing stalk market.
 """
 
 class Bot(commands.Bot):
     def __init__(self):
-        super().__init__(commands.when_mentioned_or("~"),
-                         game=discord.Game(name="~help"),
+        super().__init__(commands.when_mentioned_or("+"),
+                         game=discord.Game(name="+help"),
                          description=DESCRIPTION,
                          pm_help=None)
         self.get_command('help').after_invoke(self.post_help)
