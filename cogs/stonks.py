@@ -1,6 +1,10 @@
+import io
 import json
 import os
 from os import path
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 import discord
 from discord.ext import commands
@@ -113,10 +117,49 @@ class Stonks(commands.Cog):
 
         store(ctx.author.id, data)
 
-    @commands.command()
+    @commands.command(hidden=True)
     async def summary(self, ctx: commands.Context):
         pass
 
-    @commands.command(hidden=True)
-    async def graph(self, ctx: commands.Context, graph_all: str):
-        pass
+    @commands.command()
+    async def graph(self, ctx: commands.Context):
+        data = load(ctx.author.id)
+        with plt.xkcd():
+            fig = plt.figure()
+            ax = fig.add_axes((0.2, 0.3, 0.7, 0.6))
+            ax.spines['right'].set_color('none')
+            ax.spines['top'].set_color('none')
+            ax.set_xticks(range(12))
+            ax.set_xlim(0, 11)
+
+            d = np.array([
+                data['price'][d][t] if data['price'][d][t] is not None else np.nan
+                for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+                for t in ['am', 'pm']
+                ])
+
+            ax.plot(d)
+
+            if data['buy']['price'] is not None:
+                ax.hlines(data['buy']['price'], 0, 11, linestyles='dotted')
+
+            ax.set_xlabel('date')
+            ax.set_ylabel('price (bells)')
+            ax.set_xticklabels(['mon - am',
+                                'mon - pm',
+                                'tue - am', 
+                                'tue - pm',
+                                'wed - am',
+                                'wed - pm',
+                                'thu - am',
+                                'thu - pm',
+                                'fri - am',
+                                'fri - pm',
+                                'sat - am',
+                                'sat - pm'])
+            ax.tick_params(axis='x', labelrotation=90)
+            tmp = io.BytesIO()
+            fig.savefig(tmp, format="png")
+            tmp.seek(0)
+            await ctx.send(file=discord.File(tmp, filename="stonks.png"))
+
