@@ -9,5 +9,5 @@ class Manage(commands.Cog):
     @commands.command(hidden=True)
     @can_manage()
     async def restart(self, ctx: commands.Context):
-        await ctx.send("Ok **{author}**\n*SYSTEM RESTARTING*")
+        await ctx.send(f"Ok **{ctx.author}**\n*SYSTEM RESTARTING*")
         ctx.bot.loop.stop()
