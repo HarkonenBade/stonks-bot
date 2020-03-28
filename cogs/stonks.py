@@ -1,19 +1,22 @@
 import asyncio
+import datetime
 import io
 import json
 import os
 from os import path
+import threading
+import time
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+import schedule
 
 import discord
 from discord.ext import commands
 
 
-def blank():
-    return {'buy': {'price': None, 'quantity': None},
-            'price': {d: {'am': None, 'pm': None} for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']}}
+LOAD_STORE = threading.Lock()
 
 
 def load(uid):
@@ -21,7 +24,8 @@ def load(uid):
         with open(f"data/stonks/{uid}", "r") as f:
             return json.load(f)
     else:
-        None
+        return {'buy': {'price': None, 'quantity': None},
+                'price': {d: {'am': None, 'pm': None} for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']}}
 
 
 def store(uid, data):
@@ -110,14 +114,42 @@ def plot_multi(data, f):
 
 
 class Stonks(commands.Cog):
+    def __init__(self):
+        def stonk_rollover():
+            with LOAD_STORE:
+                with open('data/stonks/log', 'a') as lg:
+                    for pth in os.listdir('data/stonks'):
+                        try:
+                            _ = int(pth)
+                        except:
+                            continue
+                        with open(f'data/stonks/{pth}') as f:
+                            data = json.load(f)
+                        data['userid'] = pth
+                        data['date'] = datetime.date.today().strftime('%Y-%m-%d')
+                        json.dump(data, lg)
+                        lg.write('\n')
+                        os.remove(f'data/stonks/{pth}')
+        self.stonk_rollover = stonk_rollover
+
+        schedule.every().sunday.at("04:00").do(stonk_rollover)
+
+        def sch_runner():
+            while True:
+                schedule.run_pending()
+                time.sleep(60)
+
+        self.sch_thr = threading.Thread(target=sch_runner, daemon=True)
+        self.sch_thr.start()
+
     @commands.command()
     async def buy(self, ctx: commands.Context, price: int, quantity: int):
         post = await ctx.send(
             content=f"Ok lets get you setup!\n"
-                    f"First remember, this will archive your stalks from last week, hit the ❌ react to abort!\n"
                     f"You bought {quantity} nips for {price} bells each?\n"
                     f"If that's right, hit the ✅ react to save!\n"
-                    f"If I got my figures twisted, hit the 🔁 react to swap those numbers around.")
+                    f"If I got my figures twisted, hit the 🔁 react to swap those numbers around.\n"
+                    f"If you just want to bail hit the ❌ react.")
         await post.add_reaction('✅')
         await post.add_reaction('🔁')
         await post.add_reaction('❌')
@@ -137,15 +169,13 @@ class Stonks(commands.Cog):
         elif str(react.emoji) == "🔁":
             price, quantity = quantity, price
 
-        data = load(ctx.author.id)
-        if data is not None:
-            with open("data/stonks/log", "a") as f:
-                json.dump(data, f)
-                f.write('\n')
+        with LOAD_STORE:
+            data = load(ctx.author.id)
 
-        data = blank()
-        data['buy']['price'] = price
-        data['buy']['quantity'] = quantity
+            data['buy']['price'] = price
+            data['buy']['quantity'] = quantity
+
+            store(ctx.author.id, data)
 
         await post.edit(
             content=f"Ok awesome! "
@@ -153,15 +183,8 @@ class Stonks(commands.Cog):
                     f"You have {quantity * price} bells riding on this week, hope it goes well!",
             delete_after=600)
 
-        store(ctx.author.id, data)
-
     @commands.command()
     async def price(self, ctx: commands.Context, day: str, time: str, price: int):
-        data = load(ctx.author.id)
-
-        if data is None:
-            data = blank()
-
         day = day.lower().strip()
         time = time.lower().strip()
 
@@ -202,7 +225,12 @@ class Stonks(commands.Cog):
                 content="I'm sorry, you seem to be trying to set a price of 0 or less, that shouldn't be possible.")
             return
 
-        data['price'][day][time] = price
+        with LOAD_STORE:
+            data = load(ctx.author.id)
+
+            data['price'][day][time] = price
+
+            store(ctx.author.id, data)
 
         if data['buy']['price'] is not None:
             diff = price - data['buy']['price']
@@ -216,15 +244,15 @@ class Stonks(commands.Cog):
             await ctx.send(content=f"Thanks!\n"
                                    f"You set a price of {price} bells for nips on {day} {time}.")
 
-        store(ctx.author.id, data)
-
     @commands.command(hidden=True)
     async def summary(self, ctx: commands.Context):
         pass
 
     @commands.command()
     async def graph(self, ctx: commands.Context):
-        data = load(ctx.author.id)
+        with LOAD_STORE:
+            data = load(ctx.author.id)
+
         tmp = io.BytesIO()
         plot_single(data, tmp)
         tmp.seek(0)
@@ -232,14 +260,16 @@ class Stonks(commands.Cog):
 
     @commands.command()
     async def graphall(self, ctx: commands.Context):
-        data = {}
-        for pth in os.listdir('data/stonks'):
-            try:
-                uid = int(pth)
-            except:
-                continue
-            if ctx.guild.get_member(uid) is not None:
-                data[ctx.guild.get_member(uid).name] = load(uid)
+        with LOAD_STORE:
+            data = {}
+            for pth in os.listdir('data/stonks'):
+                try:
+                    uid = int(pth)
+                except:
+                    continue
+                if ctx.guild.get_member(uid) is not None:
+                    data[ctx.guild.get_member(uid).name] = load(uid)
+
         tmp = io.BytesIO()
         plot_multi(data, tmp)
         tmp.seek(0)
