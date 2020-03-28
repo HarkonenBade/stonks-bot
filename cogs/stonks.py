@@ -53,10 +53,10 @@ def ax_config(ax):
 
 def data_to_nparr(data, nans=True):
     return np.array([
-            np.nan if nans and data['price'][d][t] is None else data['price'][d][t]
-            for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-            for t in ['am', 'pm']
-        ])
+        np.nan if nans and data['price'][d][t] is None else data['price'][d][t]
+        for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+        for t in ['am', 'pm']
+    ])
 
 
 def plot_single(data, f):
@@ -113,7 +113,11 @@ class Stonks(commands.Cog):
     @commands.command()
     async def buy(self, ctx: commands.Context, price: int, quantity: int):
         post = await ctx.send(
-            content=f"Ok lets get you setup!\nFirst remember, this will archive your stocks from last week, hit the ❌ react to abort!\nYou bought {quantity} nips for {price} bells each?\nIf thats right, hit the ✅ react to save!\nIf I got my figures twisted, hit the 🔁 react to swap those numbers around.")
+            content=f"Ok lets get you setup!\n"
+                    f"First remember, this will archive your stalks from last week, hit the ❌ react to abort!\n"
+                    f"You bought {quantity} nips for {price} bells each?\n"
+                    f"If that's right, hit the ✅ react to save!\n"
+                    f"If I got my figures twisted, hit the 🔁 react to swap those numbers around.")
         await post.add_reaction('✅')
         await post.add_reaction('🔁')
         await post.add_reaction('❌')
@@ -144,7 +148,9 @@ class Stonks(commands.Cog):
         data['buy']['quantity'] = quantity
 
         await post.edit(
-            content=f"Ok awesome! Got you setup this week with a haul of {quantity} nips for {price} each. You have {quantity * price} bells riding on this week, hope it goes well!",
+            content=f"Ok awesome! "
+                    f"Got you setup this week with a haul of {quantity} nips for {price} each. "
+                    f"You have {quantity * price} bells riding on this week, hope it goes well!",
             delete_after=600)
 
         store(ctx.author.id, data)
@@ -173,11 +179,13 @@ class Stonks(commands.Cog):
             day = "sat"
         elif day == "sun" or day == "sunday":
             await ctx.send(
-                content="Did you mean to say Sunday? If so you probably want the +buy command instead for buying new nips.")
+                content="Did you mean to say Sunday? "
+                        "If so you probably want the +buy command instead for buying new nips.")
             return
         else:
             await ctx.send(
-                content="I'm sorry, I couldn't recognise what day of the week you were saying. Try saying something like mon, tue, wed, thu, fri or sat.")
+                content="I'm sorry, I couldn't recognise what day of the week you were saying. "
+                        "Try saying something like mon, tue, wed, thu, fri or sat.")
             return
 
         if time == "am" or time == "morn" or time == "morning":
@@ -200,9 +208,13 @@ class Stonks(commands.Cog):
             diff = price - data['buy']['price']
             total = diff * data['buy']['quantity']
             await ctx.send(
-                content=f"Thanks!\nYou set a price of {price} bells for nips on {day} {time}.\n\nIf you sell your stock today you will get {diff} bells per nip, for a total profit of {total} bells!")
+                content=f"Thanks!\n"
+                        f"You set a price of {price} bells for nips on {day} {time}.\n\n"
+                        f"If you sell your stalks today you will make a profit of {diff} bells per nip, "
+                        f"for a total profit of {total} bells!")
         else:
-            await ctx.send(content=f"Thanks!\nYou set a price of {price} bells for nips on {day} {time}.")
+            await ctx.send(content=f"Thanks!\n"
+                                   f"You set a price of {price} bells for nips on {day} {time}.")
 
         store(ctx.author.id, data)
 
@@ -227,7 +239,7 @@ class Stonks(commands.Cog):
             except:
                 continue
             if ctx.guild.get_member(uid) is not None:
-                data[str(ctx.guild.get_member(uid))] = load(uid)
+                data[ctx.guild.get_member(uid).name] = load(uid)
         tmp = io.BytesIO()
         plot_multi(data, tmp)
         tmp.seek(0)
