@@ -102,4 +102,7 @@ ENV/
 /cfg.json
 cache/*
 
+# intellij
+.idea
+
 data
