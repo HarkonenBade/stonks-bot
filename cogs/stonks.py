@@ -221,9 +221,10 @@ class Stonks(commands.Cog):
     async def graphall(self, ctx: commands.Context):
         data = {}
         for pth in os.listdir('data/stonks'):
-            if pth == 'log':
+            try:
+                uid = int(pth)
+            except:
                 continue
-            uid = int(pth)
             if ctx.guild.get_member(uid) is not None:
                 data[str(ctx.guild.get_member(uid))] = load(uid)
         tmp = io.BytesIO()
