@@ -29,9 +29,7 @@ def store(uid, data):
         json.dump(data, f)
 
 
-def plot_config():
-    fig = plt.figure(figsize=(10, 7))
-    ax = fig.add_axes((0.1, 0.2, 0.8, 0.7))
+def ax_config(ax):
     ax.spines['right'].set_color('none')
     ax.spines['top'].set_color('none')
     ax.set_xticks(range(12))
@@ -51,7 +49,6 @@ def plot_config():
                         'sat - pm'])
     ax.tick_params(axis='x', labelrotation=90)
     ax.set_ylabel('price (bells)')
-    return fig, ax
 
 
 def data_to_nparr(data, nans=True):
@@ -64,7 +61,9 @@ def data_to_nparr(data, nans=True):
 
 def plot_single(data, f):
     with plt.xkcd():
-        fig, ax = plot_config()
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_axes((0.1, 0.2, 0.8, 0.7))
+        ax_config(ax)
 
         d = data_to_nparr(data)
 
@@ -87,7 +86,9 @@ def plot_single(data, f):
 
 def plot_multi(data, f):
     with plt.xkcd():
-        fig, ax = plot_config()
+        fig = plt.figure(figsize=(13, 7))
+        ax = fig.add_axes((0.1, 0.2, 0.6, 0.7))
+        ax_config(ax)
 
         for name, _data in data.items():
             d = data_to_nparr(_data)
@@ -103,7 +104,7 @@ def plot_multi(data, f):
                     continue
                 ax.text(i, v + disp, str(int(v)), alpha=0.5, ha="center", va="bottom")
 
-        ax.legend()
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         fig.savefig(f, format="png")
 
