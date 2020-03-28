@@ -27,6 +27,62 @@ def store(uid, data):
         json.dump(data, f)
 
 
+def plot_config():
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_axes((0.1, 0.2, 0.8, 0.7))
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+    ax.set_xticks(range(12))
+    ax.set_xlim(-0.5, 11.5)
+    ax.set_xlabel('date')
+    ax.set_xticklabels(['mon - am',
+                        'mon - pm',
+                        'tue - am',
+                        'tue - pm',
+                        'wed - am',
+                        'wed - pm',
+                        'thu - am',
+                        'thu - pm',
+                        'fri - am',
+                        'fri - pm',
+                        'sat - am',
+                        'sat - pm'])
+    ax.tick_params(axis='x', labelrotation=90)
+    ax.set_ylabel('price (bells)')
+    return fig, ax
+
+
+def data_to_nparr(data, nans=True):
+    return np.array([
+            np.nan if nans and data['price'][d][t] is None else data['price'][d][t]
+            for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+            for t in ['am', 'pm']
+        ])
+
+
+def plot_single(data, f):
+    with plt.xkcd():
+        fig, ax = plot_config()
+
+        d = data_to_nparr(data)
+
+        ax.plot(d, marker=".")
+
+        if data['buy']['price'] is not None:
+            ax.hlines(data['buy']['price'], -0.5, 11.5, linestyles='dotted')
+            ax.text(11.5, data['buy']['price'], str(data['buy']['price']), alpha=0.5, ha="left", va="center")
+
+        b, t = ax.get_ylim()
+        disp = (t - b) / 30
+
+        for i, v in enumerate(data_to_nparr(data, nans=False)):
+            if v is None:
+                continue
+            ax.text(i, v + disp, str(v), alpha=0.5, ha="center", va="bottom")
+
+        fig.savefig(f, format="png")
+
+
 class Stonks(commands.Cog):
     @commands.command()
     async def buy(self, ctx: commands.Context, price: int, quantity: int):
@@ -124,42 +180,8 @@ class Stonks(commands.Cog):
     @commands.command()
     async def graph(self, ctx: commands.Context):
         data = load(ctx.author.id)
-        with plt.xkcd():
-            fig = plt.figure()
-            ax = fig.add_axes((0.2, 0.3, 0.7, 0.6))
-            ax.spines['right'].set_color('none')
-            ax.spines['top'].set_color('none')
-            ax.set_xticks(range(12))
-            ax.set_xlim(0, 11)
-
-            d = np.array([
-                data['price'][d][t] if data['price'][d][t] is not None else np.nan
-                for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
-                for t in ['am', 'pm']
-                ])
-
-            ax.plot(d)
-
-            if data['buy']['price'] is not None:
-                ax.hlines(data['buy']['price'], 0, 11, linestyles='dotted')
-
-            ax.set_xlabel('date')
-            ax.set_ylabel('price (bells)')
-            ax.set_xticklabels(['mon - am',
-                                'mon - pm',
-                                'tue - am', 
-                                'tue - pm',
-                                'wed - am',
-                                'wed - pm',
-                                'thu - am',
-                                'thu - pm',
-                                'fri - am',
-                                'fri - pm',
-                                'sat - am',
-                                'sat - pm'])
-            ax.tick_params(axis='x', labelrotation=90)
-            tmp = io.BytesIO()
-            fig.savefig(tmp, format="png")
-            tmp.seek(0)
-            await ctx.send(file=discord.File(tmp, filename="stonks.png"))
+        tmp = io.BytesIO()
+        plot_single(data, tmp)
+        tmp.seek(0)
+        await ctx.send(file=discord.File(tmp, filename="stonks.png"))
 
