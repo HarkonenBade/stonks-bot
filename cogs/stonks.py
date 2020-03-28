@@ -85,6 +85,29 @@ def plot_single(data, f):
         fig.savefig(f, format="png")
 
 
+def plot_multi(data, f):
+    with plt.xkcd():
+        fig, ax = plot_config()
+
+        for name, _data in data.items():
+            d = data_to_nparr(_data)
+            ax.plot(d, marker=".", label=name)
+
+        b, t = ax.get_ylim()
+        disp = (t - b) / 30
+
+        for _, _data in data.items():
+            d = data_to_nparr(_data, nans=False)
+            for i, v in enumerate(d):
+                if v is None:
+                    continue
+                ax.text(i, v + disp, str(int(v)), alpha=0.5, ha="center", va="bottom")
+
+        ax.legend()
+
+        fig.savefig(f, format="png")
+
+
 class Stonks(commands.Cog):
     @commands.command()
     async def buy(self, ctx: commands.Context, price: int, quantity: int):
@@ -194,3 +217,16 @@ class Stonks(commands.Cog):
         tmp.seek(0)
         await ctx.send(file=discord.File(tmp, filename="stonks.png"))
 
+    @commands.command()
+    async def graphall(self, ctx: commands.Context):
+        data = {}
+        for pth in os.listdir('data/stonks'):
+            if pth == 'log':
+                continue
+            uid = int(pth)
+            if ctx.guild.get_member(uid) is not None:
+                data[str(ctx.guild.get_member(uid))] = load(uid)
+        tmp = io.BytesIO()
+        plot_multi(data, tmp)
+        tmp.seek(0)
+        await ctx.send(file=discord.File(tmp, filename="stonks.png"))
