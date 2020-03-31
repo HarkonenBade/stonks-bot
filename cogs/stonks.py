@@ -261,6 +261,7 @@ class Stonks(commands.Cog):
         await ctx.send(file=discord.File(tmp, filename="stonks.png"))
 
     @commands.command()
+    @commands.guild_only()
     async def graphall(self, ctx: commands.Context):
         with LOAD_STORE:
             data = {}
