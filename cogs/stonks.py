@@ -153,6 +153,7 @@ class Stonks(commands.Cog):
             react, _ = await ctx.bot.wait_for("reaction_add", check=chk, timeout=300)
         except asyncio.TimeoutError:
             await post.delete()
+            return
 
         if str(react.emoji) == "❌":
             await post.edit(content="Ok, see you later!", delete_after=60)
