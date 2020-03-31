@@ -187,7 +187,7 @@ class Stonks(commands.Cog):
 
         if day == "mon" or day == "monday":
             day = "mon"
-        elif day == "tue" or day == "tuesday":
+        elif day == "tue" or day == "tues" or day == "tuesday":
             day = "tue"
         elif day == "wed" or day == "weds" or day == "wednesday" or day == "wednessday":
             day = "wed"
