@@ -63,7 +63,7 @@ def data_to_nparr(data):
     ])
 
 
-def plot_single(data, f):
+def plot_single(data, f, hline=None):
     with plt.xkcd():
         fig = plt.figure(figsize=(10, 7))
         ax = fig.add_axes((0.1, 0.2, 0.8, 0.7))
@@ -76,6 +76,10 @@ def plot_single(data, f):
         if data['buy']['price'] is not None:
             ax.hlines(data['buy']['price'], -0.5, 11.5, linestyles='dotted')
             ax.text(11.5, data['buy']['price'], str(data['buy']['price']), alpha=0.5, ha="left", va="center")
+
+        if hline is not None:
+            ax.hlines(hline, -0.5, 11.5, linestyles='dotted', color='r')
+            ax.text(11.5, hline, str(hline), alpha=0.5, ha="left", va="center")
 
         b, t = ax.get_ylim()
         disp = (t - b) / 30
@@ -240,12 +244,19 @@ class Stonks(commands.Cog):
         pass
 
     @commands.command()
-    async def graph(self, ctx: commands.Context):
+    async def graph(self, ctx: commands.Context, other: discord.Member):
         with LOAD_STORE:
             data = load(ctx.author.id)
 
         tmp = io.BytesIO()
-        plot_single(data, tmp)
+
+        if other is not None:
+            with LOAD_STORE:
+                odata = load(other.id)
+            plot_single(odata, tmp, hline=data['buy']['price'])
+        else:
+            plot_single(data, tmp)
+
         tmp.seek(0)
         await ctx.send(file=discord.File(tmp, filename="stonks.png"))
 
