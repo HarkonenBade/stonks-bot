@@ -98,16 +98,6 @@ def plot_multi(data, f):
             d = data_to_nparr(_data)
             ax.plot(d, marker=".", label=name)
 
-        b, t = ax.get_ylim()
-        disp = (t - b) / 30
-
-        for _, _data in data.items():
-            d = data_to_nparr(_data, nans=False)
-            for i, v in enumerate(d):
-                if v is None:
-                    continue
-                ax.text(i, v + disp, str(int(v)), alpha=0.5, ha="center", va="bottom")
-
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         fig.savefig(f, format="png")
