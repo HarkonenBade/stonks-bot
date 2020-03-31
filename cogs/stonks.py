@@ -55,9 +55,9 @@ def ax_config(ax):
     ax.set_ylabel('price (bells)')
 
 
-def data_to_nparr(data, nans=True):
+def data_to_nparr(data):
     return np.array([
-        np.nan if nans and data['price'][d][t] is None else data['price'][d][t]
+        np.nan if data['price'][d][t] is None else data['price'][d][t]
         for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
         for t in ['am', 'pm']
     ])
@@ -80,8 +80,8 @@ def plot_single(data, f):
         b, t = ax.get_ylim()
         disp = (t - b) / 30
 
-        for i, v in enumerate(data_to_nparr(data, nans=False)):
-            if v is None:
+        for i, v in enumerate(d):
+            if np.isnan(v):
                 continue
             ax.text(i, v + disp, str(v), alpha=0.5, ha="center", va="bottom")
 
