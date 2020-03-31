@@ -244,7 +244,7 @@ class Stonks(commands.Cog):
         pass
 
     @commands.command()
-    async def graph(self, ctx: commands.Context, other: discord.Member):
+    async def graph(self, ctx: commands.Context, other: discord.Member = None):
         with LOAD_STORE:
             data = load(ctx.author.id)
 
