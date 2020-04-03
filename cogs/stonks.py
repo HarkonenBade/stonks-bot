@@ -90,6 +90,7 @@ def plot_single(data, f, hline=None):
             ax.text(i, v + disp, str(v), alpha=0.5, ha="center", va="bottom")
 
         fig.savefig(f, format="png")
+        plt.close(fig)
 
 
 def plot_multi(data, f):
@@ -105,6 +106,7 @@ def plot_multi(data, f):
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
         fig.savefig(f, format="png")
+        plt.close(fig)
 
 
 class Stonks(commands.Cog):
