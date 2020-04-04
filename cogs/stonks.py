@@ -107,8 +107,11 @@ def plot_single(data, f, hline=None):
         ax_config(ax)
 
         d = data_to_nparr(data)
+        x = np.arange(0, len(d))
+        mask = np.isfinite(d)
 
-        ax.plot(d, marker=".")
+        line, = ax.plot(x[mask], d[mask], ls="--")
+        ax.plot(x, d, marker=".", color=line.get_color())
 
         if data['buy']['price'] is not None:
             ax.hlines(data['buy']['price'], -0.5, 11.5, linestyles='dotted')
@@ -118,13 +121,10 @@ def plot_single(data, f, hline=None):
             ax.hlines(hline, -0.5, 11.5, linestyles='dotted', color='r')
             ax.text(11.5, hline, str(hline), alpha=0.5, ha="left", va="center")
 
-        b, t = ax.get_ylim()
-        disp = (t - b) / 30
-
         for i, v in enumerate(d):
             if np.isnan(v):
                 continue
-            ax.text(i, v + disp, str(v), alpha=0.5, ha="center", va="bottom")
+            ax.text(i-0.1, v, str(int(v)), alpha=0.5, ha="right", va="center")
 
         fig.savefig(f, format="png")
         plt.close(fig)
@@ -138,7 +138,11 @@ def plot_multi(data, f):
 
         for name, _data in data.items():
             d = data_to_nparr(_data)
-            ax.plot(d, marker=".", label=name)
+            x = np.arange(0, len(d))
+            mask = np.isfinite(d)
+
+            line, = ax.plot(x[mask], d[mask], ls="--")
+            ax.plot(x, d, marker=".", color=line.get_color(), label=name)
 
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
