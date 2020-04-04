@@ -33,6 +33,43 @@ def store(uid, data):
         json.dump(data, f)
 
 
+def day_norm(val):
+    dmap = {'mon': ['monday'],
+            'tue': ['tues', 'tuesday'],
+            'wed': ['weds', 'wednesday', 'wednessday'],
+            'thu': ['thur', 'thurs', 'thursday'],
+            'fri': ['friday'],
+            'sat': ['saturday'],
+            'sun': ['sunday']}
+
+    # Creates the reverse day map, where each key maps to itself, and every entry in the value list maps to it's key
+    idmap = {k:k for k in dmap.keys()}
+    idmap.update({v:k for k, vl in dmap.items() for v in vl})
+
+    val = val.lower().strip()
+
+    if val in idmap:
+        return idmap[val]
+    else:
+        raise ValueError
+
+
+def time_norm(val):
+    tmap = {'am': ['morn', 'morning', 'day'],
+            'pm': ['afternoon', 'evening', 'night']}
+
+    # Creates the reverse time map, where each key maps to itself, and every entry in the value list maps to it's key
+    itmap = {k: k for k in tmap.keys()}
+    itmap.update({v: k for k, vl in tmap.items() for v in vl})
+
+    val = val.lower().strip()
+
+    if val in itmap:
+        return itmap[val]
+    else:
+        raise ValueError
+
+
 def ax_config(ax):
     ax.spines['right'].set_color('none')
     ax.spines['top'].set_color('none')
@@ -182,37 +219,23 @@ class Stonks(commands.Cog):
 
     @commands.command()
     async def price(self, ctx: commands.Context, day: str, time: str, price: int):
-        day = day.lower().strip()
-        time = time.lower().strip()
+        try:
+            day = day_norm(day)
 
-        if day == "mon" or day == "monday":
-            day = "mon"
-        elif day == "tue" or day == "tues" or day == "tuesday":
-            day = "tue"
-        elif day == "wed" or day == "weds" or day == "wednesday" or day == "wednessday":
-            day = "wed"
-        elif day == "thu" or day == "thur" or day == "thursday" or day == "thurs":
-            day = "thu"
-        elif day == "fri" or day == "friday":
-            day = "fri"
-        elif day == "sat" or day == "saturday":
-            day = "sat"
-        elif day == "sun" or day == "sunday":
-            await ctx.send(
-                content="Did you mean to say Sunday? "
-                        "If so you probably want the +buy command instead for buying new nips.")
-            return
-        else:
+            if day == "sun":
+                await ctx.send(
+                    content="Did you mean to say Sunday? "
+                            "If so you probably want the +buy command instead for buying new nips.")
+                return
+        except ValueError:
             await ctx.send(
                 content="I'm sorry, I couldn't recognise what day of the week you were saying. "
                         "Try saying something like mon, tue, wed, thu, fri or sat.")
             return
 
-        if time == "am" or time == "morn" or time == "morning":
-            time = "am"
-        elif time == "pm" or time == "evening" or time == "afternoon":
-            time = "pm"
-        else:
+        try:
+            time = time_norm(time)
+        except ValueError:
             await ctx.send(
                 content="I'm sorry, I couldn't recognise what time you said. Try saying something like am or pm.")
             return
