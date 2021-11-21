@@ -9,10 +9,13 @@ A bot for tracking the animal crossing stalk market.
 
 class Bot(commands.Bot):
     def __init__(self):
+        intents = discord.Intents.default()
+        intents.members = True
         super().__init__(commands.when_mentioned_or("+"),
                          game=discord.Game(name="+help"),
                          description=DESCRIPTION,
-                         pm_help=None)
+                         help_command=commands.DefaultHelpCommand(dm_help=None),
+                         intents=intents)
         self.get_command('help').after_invoke(self.post_help)
 
     async def post_help(self, ctx: commands.Context):
@@ -21,10 +24,10 @@ class Bot(commands.Bot):
     async def on_ready(self):
         print('We have logged in as {0.user}'.format(self))
         self.owner_id = (await self.application_info()).owner.id
-        await self.pm_owner(content="Bot starting up")
+        await self.pm_owner(content="Yutu starting up")
 
     async def pm_owner(self, *args, **kwargs):
-        owner = self.get_user(self.owner_id)
+        owner = await self.fetch_user(self.owner_id)
         await owner.send(*args, **kwargs)
 
     async def on_command_error(self, ctx: commands.Context, exception: Exception):
