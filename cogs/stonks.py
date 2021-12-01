@@ -283,7 +283,7 @@ class Stonks(commands.Cog):
             ])
         embed = discord.Embed(title=f"**{ctx.author}'s** Market Predictions",
                               url=f"https://ac-turnip.com/share?f={fseq})")
-        embed.set_image(f"https://ac-turnip.com/p-{fseq}.png")
+        embed.set_image(url=f"https://ac-turnip.com/p-{fseq}.png")
         await ctx.send(embed=embed)
 
     @commands.command()
