@@ -281,7 +281,7 @@ class Stonks(commands.Cog):
             for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
             for t in ['am', 'pm']
             ])
-        await ctx.send(content=f"<https://ac-turnip.com/share?f=${fseq}>\nhttps://ac-turnip.com/p-${fseq}.png")
+        await ctx.send(content=f"<https://ac-turnip.com/share?f={fseq}>\nhttps://ac-turnip.com/p-{fseq}.png")
 
     @commands.command()
     async def graph(self, ctx: commands.Context, other: discord.Member = None):
