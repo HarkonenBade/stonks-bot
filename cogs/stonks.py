@@ -273,6 +273,16 @@ class Stonks(commands.Cog):
         pass
 
     @commands.command()
+    async def prophet(self, ctx: commands.Context):
+        with LOAD_STORE:
+            data = load(ctx.author.id)
+        await ctx.send(content="https://ac-turnip.com/p--"+ "-".join([
+                "" if data['price'][d][t] is None else str(data['price'][d][t])
+                for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+                for t in ['am', 'pm']
+                ]) + ".png")
+
+    @commands.command()
     async def graph(self, ctx: commands.Context, other: discord.Member = None):
         with LOAD_STORE:
             data = load(ctx.author.id)
