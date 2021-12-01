@@ -281,7 +281,10 @@ class Stonks(commands.Cog):
             for d in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
             for t in ['am', 'pm']
             ])
-        await ctx.send(content=f"<https://ac-turnip.com/share?f={fseq}>\nhttps://ac-turnip.com/p-{fseq}.png")
+        embed = discord.Embed(title=f"**{ctx.author}'s** Market Predictions",
+                              url=f"https://ac-turnip.com/share?f={fseq})")
+        embed.set_image(f"https://ac-turnip.com/p-{fseq}.png")
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def graph(self, ctx: commands.Context, other: discord.Member = None):
